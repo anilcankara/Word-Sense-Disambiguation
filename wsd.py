@@ -46,9 +46,9 @@ for synset in synsets:
 #print(str(wordToSensesDict))
 
 #sentence = "yaz gelmek bahar kış"
-sentence = "fare bilgisayar telefon köpek"
+sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
 tokens = sentence.split()
-target = "fare"  
+target = "blok"  
 
 def getSenses(word):
 	return wordToSensesDict[word]
@@ -94,6 +94,7 @@ def disambiguate(tokens, target):
 		synset = idToWordsDict[senseId][1]
 		for word in synset:
 			bag.append(word)
+		bag = bag + idToWordsDict[senseId][2]
 		sensesOfTargetToBag[senseId] = bag
 
 	# Handling nearby words
@@ -114,7 +115,7 @@ def disambiguate(tokens, target):
 	scoresDict = calculate_scores(sensesOfTargetToBag, bigBag, scoresDict, 1)
 	# While there are hypernyms left
 	level = 0 # number of iterations
-	while level < 7:
+	while level < 3:
 		level = level + 1
 		#sensesOfTargetToBag'e her sense'in hypernym'inin kelimelerini ekle.
 		for senseId in sensesOfTargetToBag:
