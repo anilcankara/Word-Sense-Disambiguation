@@ -25,10 +25,6 @@ def getHypernym(senseId):
 def setHypernym(senseId, hypernymId):
 	idToWordsDict[senseId][0] = hypernymId
 
-# Wordnete bunu hem yaz hem yazmak olarak sokmamız lazım çünkü wordnette yaz'ın fiil hali yok
-# Burda zemberek falan kullanılacak
-# Wordnette olmayan kelimeler için bi if kontrolü lazım yoksa program patlar
-
 def calculate_scores(senseToBag, bigBag, scoresDict, divider):
 	list2 = bigBag
 	#scoresDict = {}
@@ -82,12 +78,13 @@ def disambiguate(tokens, target):
 	# Handling nearby words
 	for token in tokens:
 		if token != target:
-			senses = wordToSensesDict[token]
-			for senseId in senses:
-				words = idToWordsDict[senseId][1]      # Words in the synset
-				for word in words:
-					if word not in bigBag:
-						bigBag.append(word)
+			if token in wordToSensesDict:
+				senses = wordToSensesDict[token]
+				for senseId in senses:
+					words = idToWordsDict[senseId][1]      # Words in the synset
+					for word in words:
+						if word not in bigBag:
+							bigBag.append(word)
 
 
 	#print(bigBag)
@@ -137,10 +134,11 @@ def disambiguate(tokens, target):
 	# Hypernym'i yukarda bozuyorum level çıkarken
 
 # BUNLAR ZEMBEREĞE SOKULMALI
-sentence = "yaz bahar kış mevsim"
+sentence = "fkdjhfj yaz zaaaaxd bahar"
 #sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
 tokens = sentence.split()
 
+# Wordnete bunu hem yaz hem yazmak olarak sokmamız lazım çünkü wordnette yaz'ın fiil hali yok
 target = "yaz"  
 if target not in wordToSensesDict:
 	print("Bu kelime Wordnet'te bulunmamaktadır. Lütfen başka bir kelime deneyiniz.")
@@ -157,6 +155,9 @@ else:
 Test yaparken 1 sense'i olanlar veya hiç olmayanlar atlanacak
 
 '''
+
+# Daha fazla if check gerekebilir kontrol etmeliyim
+# Nearby word'lere weight
 
 
 
