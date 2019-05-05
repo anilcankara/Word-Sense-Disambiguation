@@ -20,7 +20,7 @@ for synset in synsets:
 		#print("Hypernym id is: " + hypernymId)      
 	
 	definition = ""
-	definitionMatch = re.search('<def>.*?</def', str(synset))
+	definitionMatch = re.search('<def>.*?</def>', str(synset))
 	if definitionMatch:
 		definition = definitionMatch.group()[5:-6]
 	literals = synset.find_all("literal")
@@ -45,16 +45,20 @@ for synset in synsets:
 #print(str(idToWordsDict))
 #print(str(wordToSensesDict))
 
-#sentence = "yaz gelmek bahar kış"
-sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
+# BUNLAR ZEMBEREĞE SOKULMALI
+sentence = "yaz bahar kış mevsim"
+#sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
 tokens = sentence.split()
-target = "blok"  
+target = "yaz"  
 
 def getSenses(word):
 	return wordToSensesDict[word]
 
 def getWords(senseId):
 	return idToWordsDict[senseId][1]
+
+def getDefinitionWords(senseId):
+	return idToWordsDict[senseId][2]
 
 def getHypernym(senseId):
 	return idToWordsDict[senseId][0]
@@ -83,7 +87,7 @@ def calculate_scores(senseToBag, bigBag, scoresDict, divider):
 
 def disambiguate(tokens, target):
 	candidates = wordToSensesDict[target]
-	#candidates = candidates + wordToSensesDict[target + "mak"]      # MAK SİLİNECEK
+	candidates = candidates + wordToSensesDict[target + "mak"]      # MAK SİLİNECEK
 	#print(candidates)
 	scoresDict = {}
 	#targetBags = []  # Target word'ümüzün tüm senselerinin bagleri
@@ -94,43 +98,62 @@ def disambiguate(tokens, target):
 		synset = idToWordsDict[senseId][1]
 		for word in synset:
 			bag.append(word)
-		bag = bag + idToWordsDict[senseId][2]
+		bag = bag + idToWordsDict[senseId][2]      # Definition words
 		sensesOfTargetToBag[senseId] = bag
 
 	# Handling nearby words
 	# To add weights, enumerate this for loop and pass the divider into the bigbag
 	# Specify a window size here and consider only those tokens
+	
+	targetId = -1
+	for i, token in enumerate(tokens):
+		if token == target:
+			targetId = i
+			break
+
+	windowSize = 20
+	startIndex = targetId - windowSize
+	if startIndex < 0:
+		startIndex = 0
+	endIndex = targetId + windowSize
+	print(endIndex)
+
+	tokens = tokens[startIndex : endIndex]
+	print(str(tokens))
+	# Handling nearby words
 	for token in tokens:
 		if token != target:
 			senses = wordToSensesDict[token]
 			for senseId in senses:
-				words = idToWordsDict[senseId][1]
+				words = idToWordsDict[senseId][1]      # Words in the synset
 				for word in words:
 					if word not in bigBag:
 						bigBag.append(word)
 
 
-	print(bigBag)
-	print(sensesOfTargetToBag)
-	scoresDict = calculate_scores(sensesOfTargetToBag, bigBag, scoresDict, 1)
-	# While there are hypernyms left
+	#print(bigBag)
+	#print(sensesOfTargetToBag)
+	#scoresDict = calculate_scores(sensesOfTargetToBag, bigBag, scoresDict, 1)
+	# BUNU COMMENT OUT ETTİM TEKRAR BAKMALIYIM
+	
 	level = 0 # number of iterations
 	while level < 3:
 		level = level + 1
-		#sensesOfTargetToBag'e her sense'in hypernym'inin kelimelerini ekle.
+		#sensesOfTargetToBag'e her sense'in hypernym'inin kelimelerini ekliyorum
 		for senseId in sensesOfTargetToBag:
 			hypernymId = getHypernym(senseId)
 			if hypernymId != "":
-				additionalWords = getWords(hypernymId)
+				additionalWords = getWords(hypernymId) 
 				sensesOfTargetToBag[senseId] = sensesOfTargetToBag[senseId] + additionalWords
 				setHypernym(senseId, getHypernym(hypernymId))
-		#bigBag'e içindeki her kelimenin her sense'inin hypernym'inin kelimesini ekle.
+		#bigBag'e içindeki her kelimenin her sense'inin hypernym'inin kelimesini ekliyorum
 		for word in bigBag:  # Burda optimizasyon yapılabilir
+			# BURDAKİ WORD'LERİN DE ZEMBEREK'E SOKULMASI LAZIM (YANİ SADECE INPUT CÜMLE YETMEZ)
 			senses = getSenses(word)
 			for senseId in senses:
 				hypernymId = getHypernym(senseId)
 				if hypernymId != "":
-					additionalWords = getWords(hypernymId)
+					additionalWords = getWords(hypernymId) 
 					bigBag = bigBag + additionalWords
 					setHypernym(senseId, getHypernym(hypernymId))
 
@@ -141,10 +164,18 @@ def disambiguate(tokens, target):
 		#print(scoresDict)
 	print(scoresDict)
 
-	# Lazım olabilecek fonksiyonlar
-	# getSenses(word)
-	# getWords(senseId)
+	winnerId = ""
+	winnerScore = -1
+	for senseId in scoresDict:
+		if scoresDict[senseId] > winnerScore:
+			winnerScore = scoresDict[senseId]
+			winnerId = senseId
 
+	print("Winner id is :" + winnerId)
+	#print("Hypernym of the winner is : " + idToWordsDict[winnerId][0])
+	#print("The winner is: " + str(getWords(idToWordsDict[winnerId][0])))
+	# Wordnette tanım yoksa ne bastıracağız ekrana? Belki hypernym?
+	# Hypernym'i yukarda bozuyorum level çıkarken
 
 disambiguate(tokens, target)
 
