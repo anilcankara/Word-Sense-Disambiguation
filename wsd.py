@@ -10,12 +10,6 @@ with open('idToWordsDict.json') as f:
 with open('wordToSensesDict.json') as f2:
     wordToSensesDict = json.load(f2)
 
-# BUNLAR ZEMBEREĞE SOKULMALI
-sentence = "yaz bahar kış mevsim"
-#sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
-tokens = sentence.split()
-target = "yaz"  
-
 def getSenses(word):
 	return wordToSensesDict[word]
 
@@ -142,12 +136,27 @@ def disambiguate(tokens, target):
 	# Wordnette tanım yoksa ne bastıracağız ekrana? Belki hypernym?
 	# Hypernym'i yukarda bozuyorum level çıkarken
 
-disambiguate(tokens, target)
+# BUNLAR ZEMBEREĞE SOKULMALI
+sentence = "yaz bahar kış mevsim"
+#sentence = "blok bölge"      # "Optik fare" denedim patladı çünkü wordnette optik kelimesi yok
+tokens = sentence.split()
+
+target = "yaz"  
+if target not in wordToSensesDict:
+	print("Bu kelime Wordnet'te bulunmamaktadır. Lütfen başka bir kelime deneyiniz.")
+else:
+	disambiguate(tokens, target)
 
 # Oğuzhan's todo list:
 # 1. Zemberek gömülecek
 # 2. Stopwordler kaldırılacak
-# 3. Vikipediden yardırcaz
+# 3. Input cümlesindeki noktalama işaretleri, tırnaklar vs kaldırılacak
+# 4. Vikipediden yardırcaz
+
+'''
+Test yaparken 1 sense'i olanlar veya hiç olmayanlar atlanacak
+
+'''
 
 
 
